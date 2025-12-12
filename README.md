@@ -3,7 +3,62 @@
 
 
 ## Project Overview
-This project analyzes NIH funding data to investigate potential biases in funding allocation across model organisms and proteins. We integrate data from NIH Reporter and UniProt-GOA databases to answer research questions about funding distribution patterns.
+This project analyzes NIH funding data by integrating Gene Ontology annotations from NCBI's Gene Annotation File (GAF) with NIH Reporter funding information. Our team was responsible for the data acquisition, processing, and cleaning pipeline, delivering structured datasets ready for downstream analysis.
+
+### Data Engineering & Processing
+- Download and process large-scale GAF file (377M+ records)
+- Integrate NIH Reporter data
+- Clean and structure data for analysis
+- Deliver processed datasets to analysis team
+
+### Data Sources
+1. NIH Reporter Data
+
+- Source: https://reporter.nih.gov/exporter
+Tables Used:
+
+-- Projects - NIH-funded project details (2013-2022)
+-- Publications - Publications resulting from NIH projects
+-- Link_Tables - Maps PMID to PROJECT_NUMBER
+
+
+Key Fields: ACTIVITY, CORE_PROJECT_NUM, TOTAL_COST, PMID
+Format: CSV files
+Size: ~2-5 GB total
+
+Key Fields: ACTIVITY, CORE_PROJECT_NUM, TOTAL_COST, PMID
+Format: CSV files
+Size: ~2-5 GB total
+
+2. NCBI Gene Annotation File (GAF)
+
+- Source: https://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/goa_uniprot_gcrp.gaf.gz
+- Format: GAF 2.2 (tab-delimited)
+- Compressed Size: ~4.5 GB
+- Uncompressed Size: ~70 GB
+- Total Records: 377,449,350 annotations
+Key Fields:
+
+- DB_Object_ID (protein identifier)
+- GO_ID (Gene Ontology term)
+- Taxon_ID (organism/species)
+- PMID (PubMed publication ID)
+- Evidence_Code (annotation evidence type)
+
+
+
+Technology Stack
+Data Storage & Processing
+
+Google Cloud Storage (GCS): Raw data file storage
+Google BigQuery: Data warehouse for large-scale processing and analysis
+BigQuery Load Jobs: Direct data ingestion from GCS to BigQuery tables
+Python 3.8+: Data collection, transformation, and cleaning
+
+
+
+
+
 
 ## Research Questions
 
