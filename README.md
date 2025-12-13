@@ -161,7 +161,7 @@ Total size: ~2.8 GB
 ### Step 2: Upload and Prepare GAF File
 What we did: Uploaded pre-downloaded GAF file and prepared it for processing
 The GAF file was already downloaded and uncompressed locally, then uploaded to GCS:
-# Upload the uncompressed GAF file
+### Upload the uncompressed GAF file
 ```
 
 gsutil cp goa_uniprot_gcrp.gaf gs://gaf-data/
