@@ -65,7 +65,7 @@ This project analyzes NIH funding data by integrating Gene Ontology annotations 
 
 ### Architecture Overview
 
-![DataSet Collection and PreProcessing](Arch.png)
+![DataSet Collection and PreProcessing](images/Arch.png)
 
 ```
 Raw Data Sources
@@ -423,12 +423,12 @@ Output files in gs://gaf-data/exports/final/:
 
 ### Sample Queries :
 
-![Total_count](<count_query-1.png>) 
+![Total_count](<images/count_query-1.png>) 
 
-![Null Values Check](<null_check_query.png>)
+![Null Values Check](<images/null_check_query.png>)
 
 
-![summary](<summary.png>)
+![summary](<images/summary.png>)
 
 
 
