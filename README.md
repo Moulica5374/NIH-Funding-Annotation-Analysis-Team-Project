@@ -169,10 +169,13 @@ gsutil cp goa_uniprot_gcrp.gaf gs://gaf-data/
 ```
 Result: Uncompressed GAF file ready at gs://gaf-data/goa_uniprot_gcrp.gaf (~70 GB)
 
-### Load GAF File to BigQuery using Dataproc/Spark (Job)
+### Step 3: Load GAF File to BigQuery using Dataproc/Spark (Job)
 What we did: Used a Dataproc Spark job to read the uncompressed GAF file and load it to BigQuery
+
 Why Spark? The 70GB uncompressed file is too large for direct BigQuery load jobs, so we used Spark for distributed processing.
+
 Script: load_gaf.py (PySpark job submitted to Dataproc cluster)
+
 ```
 from pyspark.sql import SparkSession
 
@@ -207,6 +210,7 @@ df.write \
     .save()
 ```
 #### How to run (on Dataproc):
+
 ### Submit PySpark job to Dataproc cluster
 ```
 gcloud dataproc jobs submit pyspark \
@@ -215,14 +219,14 @@ gcloud dataproc jobs submit pyspark \
     --region=us-central1
 ```
 
-***Result - Table Created:***
+**Result - Table Created:**
 
 - Table: gaf-analysis.genomics_data.goa_uniprot
 - Location: US (multi-region)
 - Total Records: 377,110,983 gene annotations
 - Size: 70.89 GB logical / 4.81 GB physical (compressed in BigQuery)
 
-***Processing Details:***
+**Processing Details:**
 
 - Spark reads file in parallel across multiple workers
 - Processes 70GB of tab-delimited data
@@ -231,6 +235,7 @@ gcloud dataproc jobs submit pyspark \
 - BigQuery compresses data upon storage (70GB → 4.8GB)
 
 ### Step 4: Load NIH Reporter Data to BigQuery
+
 What we did: Used Python script to load NIH Reporter CSV files from GCS to BigQuery.
 
 NIH data files were uploaded to gs://gaf-data/Reports1/ and loaded using load_nih_reports.py script.
@@ -334,6 +339,7 @@ This query:
 **Result:** pmid_mapping table with gene annotations + NIH project details
 
 ### Step 6: Create Final Integrated Dataset
+
 **Final Query:** Join GAF annotations with NIH funding data using PMIDs as the link
 
 ```
@@ -353,6 +359,64 @@ What this does:
 - Extracts PMID from "PMID:12345678" format
 - Joins with NIH projects via the PMID
 - Creates comprehensive table with both gene annotations AND funding information
+
+
+### Step 7: Data Cleaning - Remove Nulls and Duplicates
+
+What we did: Cleaned the integrated dataset by removing null values and duplicate records
+
+Query:
+
+```
+-- Create cleaned version of the dataset
+CREATE OR REPLACE TABLE `gaf-analysis.dataset.pmid_mapping_clean` AS
+SELECT DISTINCT
+  gene_symbol,
+  gene_name,
+  GO_ID,
+  Aspect,
+  DB_Reference,
+  APPLICATION_ID,
+  PROJECT_TITLE,
+  PI_NAMEs,
+  TOTAL_COST,
+  FY,
+  ORG_NAME,
+  PMID,
+  matched_pmid
+FROM `gaf-analysis.dataset.pmid_mapping`
+
+
+WHERE 
+  -- Remove records with null critical fields
+  gene_symbol IS NOT NULL
+  AND GO_ID IS NOT NULL
+  AND PMID IS NOT NULL
+  AND PROJECT_TITLE IS NOT NULL
+  AND TOTAL_COST IS NOT NULL
+  AND matched_pmid IS NOT NULL;
+```
+Result: Clean dataset ready for analysis team
+
+### Step 8: Export for Analysis Team
+
+Export to CSV for sharing with analysis :
+
+```
+
+EXPORT DATA OPTIONS(
+  uri='gs://gaf-data/exports/final/gaf_nih_linked_*.csv',
+  format='CSV',
+  overwrite=true,
+  header=true,
+  field_delimiter=','
+) AS
+SELECT * FROM `nih_reports_us.nih_funded_gene_annotations`;
+```
+Output files in gs://gaf-data/exports/final/:
+- gaf_nih_linked_000000000000.csv (~1 GB)
+- gaf_nih_linked_000000000001.csv 
+
 
 
 
