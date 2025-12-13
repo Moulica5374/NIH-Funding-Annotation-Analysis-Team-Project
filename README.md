@@ -263,11 +263,80 @@ load_job = client.load_table_from_uri(
     'gs://gaf-data/Reports1/REPORTER_PUBLNK_C_*.csv',
     'gaf-analysis.nih_reports_us.publication_links',
     job_config=job_config
-)```
+)
+```
 Fields:
 
 - PMID (PubMed ID)
 - PROJECT_NUMBER (links to projects table)
+
+### Step 5: Link GAF with NIH Data
+
+What we did: Used SQL to extract PMIDs from GAF and join with NIH Reporter data
+
+SQL Query: link_gaf_nih.sql
+
+```
+CREATE OR REPLACE TABLE `gaf-analysis.dataset.pmid_mapping` AS
+SELECT 
+  -- GAF gene annotation fields
+  g.DB_Object_Symbol AS gene_symbol,
+  g.DB_Object_Name AS gene_name,
+  g.GO_ID,
+  g.Aspect,
+  g.DB_Reference,
+  
+  -- NIH Reporter project fields
+  r.APPLICATION_ID,
+  r.PROJECT_TITLE,
+  r.PI_NAMEs,
+  r.TOTAL_COST,
+  r.FY,
+  r.ORG_NAME,
+  r.PMID,
+  
+  -- Extracted PMID for verification
+  REGEXP_EXTRACT(g.DB_Reference, r'PMID:(\d+)') AS matched_pmid
+
+FROM `genomics_data.goa_uniprot` g
+INNER JOIN `gaf-analysis.dataset.nih_reports` r
+  ON REGEXP_EXTRACT(g.DB_Reference, r'PMID:(\d+)') = r.PMID
+WHERE g.DB_Reference LIKE 'PMID:%';
+```
+This query:
+
+- Filters GAF to only records with PMID references
+- Extracts numeric PMID from "PMID:12345678" format using REGEXP_EXTRACT
+- Joins with NIH reports table on the PMID
+- Creates comprehensive mapping table linking genes to NIH funding
+
+**Result:** pmid_mapping table with gene annotations + NIH project details
+
+### Step 6: Create Final Integrated Dataset
+**Final Query:** Join GAF annotations with NIH funding data using PMIDs as the link
+
+```
+CREATE OR REPLACE TABLE `gaf-analysis.nih_reports_us.nih_funded_gene_annotations` AS
+SELECT 
+  g.*,  -- All GAF annotation fields
+  REGEXP_EXTRACT(g.DB_Reference, r'PMID:(\d+)') as pmid_extracted,
+  pp.*  -- All NIH project fields
+FROM `genomics_data.goa_uniprot` g
+INNER JOIN `nih_reports_us.pmid_projects` pp
+  ON REGEXP_EXTRACT(g.DB_Reference, r'PMID:(\d+)') = CAST(pp.PMID AS STRING)
+WHERE g.DB_Reference LIKE 'PMID:%';
+```
+What this does:
+
+- Filters GAF to only records with PMID references (1.14M out of 377M records)
+- Extracts PMID from "PMID:12345678" format
+- Joins with NIH projects via the PMID
+- Creates comprehensive table with both gene annotations AND funding information
+
+
+
+
+
 
 
 
