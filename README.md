@@ -440,35 +440,7 @@ Output files in gs://gaf-data/exports/final/:
 3. **RQ3**: [Your additional research question]
 4. **RQ4**: [Your additional research question]
 
-## Data Sources
-
-### 1. NIH Reporter Data
-- **Source**: https://reporter.nih.gov/exporter
-- **Tables Used**:
-  - `Projects` - NIH-funded project details (2013-2022)
-  - `Publications` - Publications resulting from NIH projects
-  - `Link_Tables` - Maps PMID to PROJECT_NUMBER
-- **Key Fields**: ACTIVITY (R01 focus), CORE_PROJECT_NUM, TOTAL_COST
-
-### 2. UniProt-GOA Annotations
-- **Source**: https://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/goa_uniprot_gcrp.gaf.gz
-- **Size**: ~70GB
-- **Fields**: DB_Object_ID (protein), GO_ID (function), Taxon_ID (species), PMID
-
-## Technology Stack
-
-### Data Storage
-- **Google Cloud Storage**: Raw GAF file storage (70GB)
-- **Google BigQuery**: Data warehouse for analysis
-- **MongoDB**: [Optional - if using for some data]
-
-### Processing
-- **Apache Spark on Dataproc**: Large-scale GAF file processing
-- **Python 3.x**: Data collection, preprocessing, analysis
-- **Libraries**: pandas, matplotlib, seaborn, scipy, pymongo, google-cloud-bigquery
-
-## Project Structure
-
+### Project Structure:
 ```
 nih-funding-analysis/
 ├── README.md
@@ -478,9 +450,10 @@ nih-funding-analysis/
 │   └── processed/              # Intermediate processed data
 ├── scripts/
 │   ├── 01_download_nih_data.py      # Download NIH Reporter data
-│   ├── 02_gaf_to_parquet.py         # Convert GAF to Parquet (Spark)
-│   ├── 03_load_to_bigquery.py       # Load data to BigQuery
-│   └── 04_mongodb_import.py         # Import to MongoDB (if used)
+│   ├── 02_load_to_bigquery_reports.py         # Convert data to Parquet (Spark)
+│   ├── 03_load_to_bigquery_goa.py       # Load data to BigQuery
+│   └── 04_join_reports_goa.sql   # Join  (if used)
+    └── 05_export_csv.sql.          #Final csv Files to start with analysis
 ├── analysis/
 │   ├── rq1_organism_funding.py      # RQ1 analysis
 │   ├── rq2_protein_funding.py       # RQ2 analysis
@@ -501,99 +474,6 @@ nih-funding-analysis/
 └── notebooks/
     └── exploratory_analysis.ipynb
 ```
-
-## Setup Instructions
-
-### Prerequisites
-- Python 3.8+
-- Google Cloud Platform account with BigQuery enabled
-- MongoDB installed (if using)
-- gcloud CLI installed
-
-### 1. Clone Repository
-```bash
-git clone https://github.com/your-username/nih-funding-analysis.git
-cd nih-funding-analysis
-```
-
-### 2. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Set Up Google Cloud
-```bash
-# Authenticate
-gcloud auth login
-
-# Set project
-gcloud config set project YOUR_PROJECT_ID
-
-# Create GCS bucket for GAF data
-gsutil mb gs://gaf-data
-
-# Create BigQuery dataset
-bq mk --dataset YOUR_PROJECT_ID:nih_analysis
-```
-
-### 4. Download and Process Data
-
-#### Step 4.1: Download NIH Reporter Data (2013-2022)
-```bash
-python scripts/01_download_nih_data.py --years 2013-2022 --output data/raw/
-```
-**Expected Output**: 
-- `projects_2013_2022.csv`
-- `publications_2013_2022.csv`
-- `link_tables_2013_2022.csv`
-
-**Runtime**: ~15-30 minutes
-
-#### Step 4.2: Download GAF File
-```bash
-# Download GAF file to GCS (70GB)
-wget https://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/goa_uniprot_gcrp.gaf.gz
-gunzip goa_uniprot_gcrp.gaf.gz
-gsutil cp goa_uniprot_gcrp.gaf gs://gaf-data/raw/
-```
-**Runtime**: ~20-40 minutes
-
-#### Step 4.3: Convert GAF to Parquet using Dataproc
-```bash
-# Upload processing script
-gsutil cp scripts/02_gaf_to_parquet.py gs://gaf-data/scripts/
-
-# Submit Spark job
-gcloud dataproc batches submit pyspark \
-  gs://gaf-data/scripts/02_gaf_to_parquet.py \
-  --region=us-central1 \
-  --batch=gaf-parquet-$(date +%s) \
-  --properties=spark.executor.instances=4,spark.executor.cores=4,spark.executor.memory=8g
-```
-**Expected Output**: Parquet files in `gs://gaf-data/parquet/gaf.parquet/`  
-**Runtime**: ~25-50 minutes  
-**Rows Processed**: ~377 million
-
-#### Step 4.4: Load Data to BigQuery
-```bash
-# Load NIH Projects
-bq load --autodetect --replace \
-  nih_analysis.nih_projects \
-  gs://gaf-data/parquet/gaf.parquet/*
-
-# Load Publications
-bq load --autodetect --source_format=CSV \
-  nih_analysis.nih_publications \
-  data/raw/publications_2013_2022.csv
-
-# Load Link Tables
-bq load --autodetect --source_format=CSV \
-  nih_analysis.nih_project_publications \
-  data/raw/link_tables_2013_2022.csv
-```
-**Runtime**: ~5-15 minutes per table
-
-## Running Analyses
 
 ### Research Question 1: Organism Funding Analysis
 ```bash
