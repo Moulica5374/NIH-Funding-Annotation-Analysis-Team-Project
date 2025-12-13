@@ -65,6 +65,8 @@ This project analyzes NIH funding data by integrating Gene Ontology annotations 
 
 ### Architecture Overview
 
+![DataSet Collection and PreProcessing](Architecture-1.png)
+
 ```
 Raw Data Sources
     ├── NIH Reporter (CSV) ──────┐
