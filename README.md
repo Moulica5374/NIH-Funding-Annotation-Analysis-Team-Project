@@ -207,11 +207,14 @@ df.write \
     .save()
 ```
 #### How to run (on Dataproc):
-# Submit PySpark job to Dataproc cluster
+### Submit PySpark job to Dataproc cluster
+```
 gcloud dataproc jobs submit pyspark \
     gs://gaf-data/scripts/load_gaf.py \
     --cluster=gaf-analysis\
     --region=us-central1
+```
+
 ***Result - Table Created:***
 
 - Table: gaf-analysis.genomics_data.goa_uniprot
@@ -228,25 +231,32 @@ gcloud dataproc jobs submit pyspark \
 - BigQuery compresses data upon storage (70GB → 4.8GB)
 
 ### Step 4: Load NIH Reporter Data to BigQuery
-What we did: Used Python script to load NIH Reporter CSV files from GCS to BigQuery
+What we did: Used Python script to load NIH Reporter CSV files from GCS to BigQuery.
+
 NIH data files were uploaded to gs://gaf-data/Reports1/ and loaded using load_nih_reports.py script.
 
 Script: gs://gaf-data/scripts/load_nih_reports.py
 
+#### Script loaded CSV files from GCS to BigQuery
+
 ```
-# Script loaded CSV files from GCS to BigQuery
+
 from google.cloud import bigquery
 
 client = bigquery.Client()
 
-# Load projects data
+### Load projects data
+```
 job_config = bigquery.LoadJobConfig(
     source_format=bigquery.SourceFormat.CSV,
     skip_leading_rows=1,
     autodetect=True
 )
+```
 
-# Load from multiple CSV files using wildcards
+### Load from multiple CSV files using wildcards
+
+```
 load_job = client.load_table_from_uri(
     'gs://gaf-data/Reports1/RePORTER_PRJ_C_FY*.csv',
     'gaf-analysis.nih_reports_us.projects',
@@ -267,7 +277,8 @@ Key fields:
 - PROJECT_START, PROJECT_END
 
 ***Table 2:*** publication_links - Project-Publication Mapping
-# Load publication links
+
+### Load publication links
 ```
 load_job = client.load_table_from_uri(
     'gs://gaf-data/Reports1/REPORTER_PUBLNK_C_*.csv',
