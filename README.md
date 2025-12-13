@@ -17,14 +17,14 @@ This project analyzes NIH funding data by integrating Gene Ontology annotations 
 - Source: https://reporter.nih.gov/exporter
 Tables Used:
 
--- Projects - NIH-funded project details (2013-2022)
--- Publications - Publications resulting from NIH projects
--- Link_Tables - Maps PMID to PROJECT_NUMBER
+- **Projects** - NIH-funded project details (2013-2022)
+- **Publications** - Publications resulting from NIH projects
+- **Link_Tables** - Maps PMID to PROJECT_NUMBER
 
 
-Key Fields: ACTIVITY, CORE_PROJECT_NUM, TOTAL_COST, PMID
-Format: CSV files
-Size: ~2-5 GB total
+- Key Fields: ACTIVITY, CORE_PROJECT_NUM, TOTAL_COST, PMID
+- Format: CSV files
+- Size: ~2-5 GB total
 
 Key Fields: ACTIVITY, CORE_PROJECT_NUM, TOTAL_COST, PMID
 Format: CSV files
@@ -37,7 +37,7 @@ Size: ~2-5 GB total
 - Compressed Size: ~4.5 GB
 - Uncompressed Size: ~70 GB
 - Total Records: 377,449,350 annotations
-Key Fields:
+**Key Fields**:
 
 - DB_Object_ID (protein identifier)
 - GO_ID (Gene Ontology term)
@@ -47,16 +47,100 @@ Key Fields:
 
 
 
-Technology Stack
-Data Storage & Processing
+## Technology Stack
 
-Google Cloud Storage (GCS): Raw data file storage
-Google BigQuery: Data warehouse for large-scale processing and analysis
-BigQuery Load Jobs: Direct data ingestion from GCS to BigQuery tables
-Python 3.8+: Data collection, transformation, and cleaning
+### Data Storage & Processing
+
+* **Google Cloud Storage (GCS)**: Raw data file storage
+* **Google BigQuery**: Data warehouse for large-scale processing and analysis
+* **BigQuery Load Jobs**: Direct data ingestion from GCS to BigQuery tables
+* **Python 3.8+**: Data collection, transformation, and cleaning
+
+## Key Libraries
+- google-cloud-bigquery
+- google-cloud-storage
+
+### Architecture Overview
+
+```
+Raw Data Sources
+    ├── NIH Reporter (CSV) ──────┐
+    │                             ├──> Download & Upload to GCS
+    └── NCBI GAF (70GB) ─────────┘
+              │
+              v
+    Google Cloud Storage (Raw Data Buckets)
+              │
+              v
+    BigQuery Load Jobs (Parallel Import)
+              │
+              ├──> Parse GAF format
+              ├──> Schema auto-detection
+              ├──> Load in parallel
+              └──> Create partitioned tables
+              │
+              v
+    Google BigQuery (Structured Tables)
+              │
+              ├──> Table: gaf_annotations
+              ├──> Table: nih_projects  
+              ├──> Table: nih_publications
+              └──> Table: nih_project_publications
+              │
+              v
+    Cleaned & Joined Datasets
+              │
+              v
+    Analysis Team (Statistical Analysis & Visualization)
+```
+
+## Setup Instructions
+
+### Prerequisites
+
+* Python 3.8+
+* Google Cloud Platform account with:
+  - BigQuery API enabled
+  - Cloud Storage API enabled
+* gcloud CLI installed and configured
+## Setup Instructions
+
+- Python 3.8+
+Google Cloud Platform account with:
+
+- BigQuery API enabled
+- Cloud Storage API enabled
 
 
+- gcloud CLI installed and configured
 
+## Configure Google Cloud 
+
+# Authenticate
+gcloud auth login
+
+# Set your project
+gcloud config set project gaf-analysis
+
+# Create GCS bucket for data storage
+gsutil mb gs://nih-gaf-data-bucket
+
+# Create BigQuery dataset
+bq mk --dataset analysis:nih_funding_analysis
+
+## Data Processing Steps
+
+### Step 1: Upload NIH Reporter Data to GCS
+What we did: Uploaded pre-downloaded NIH Reporter CSV files to Cloud Storage bucket
+
+NIH Reporter data files (FY 2017-2022) were uploaded to ***gs://gaf-data/Reports1/:***
+
+# In Cloud Shell - upload NIH Reporter CSV files to bucket
+```
+
+gsutil -m cp RePORTER_PRJ_C_FY*.csv gs://gaf-data/Reports1/
+gsutil -m cp REPORTER_PUBLNK_C_*.csv gs://gaf-data/Reports1/
+```
 
 
 
