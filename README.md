@@ -566,34 +566,9 @@ All visualizations are located in `results/figures/`:
 - Temporal funding trends
 - Bias detection plots with confidence intervals
 
-## Database Schema
 
-### BigQuery Tables
 
-#### `nih_analysis.nih_projects`
-```sql
-- APPLICATION_ID (STRING)
-- CORE_PROJECT_NUM (STRING)
-- TOTAL_COST (INTEGER)
-- PROJECT_START (DATE)
-- PROJECT_END (DATE)
-- [... 40 more fields]
-```
 
-#### `nih_analysis.nih_project_publications`
-```sql
-- PMID (STRING)
-- PROJECT_NUMBER (STRING)
-```
-
-#### `nih_analysis.gaf_annotations`
-```sql
-- DB_Object_ID (STRING) -- Protein ID
-- GO_ID (STRING) -- Function ID
-- Taxon_ID (STRING) -- Species
-- PMID (STRING)
-- [... 12 more fields]
-```
 
 ## Performance Considerations
 
