@@ -142,6 +142,134 @@ gsutil -m cp RePORTER_PRJ_C_FY*.csv gs://gaf-data/Reports1/
 gsutil -m cp REPORTER_PUBLNK_C_*.csv gs://gaf-data/Reports1/
 ```
 
+Files uploaded to gs://gaf-data/Reports1/:
+
+- RePORTER_PRJ_C_FY2017.csv through FY2022.csv (~2.5M projects)
+- REPORTER_PUBLNK_C_2017.csv through 2022.csv (~3.2M publication links)
+Total size: ~2.8 GB
+
+### Step 2: Upload and Prepare GAF File
+What we did: Uploaded pre-downloaded GAF file and prepared it for processing
+The GAF file was already downloaded and uncompressed locally, then uploaded to GCS:
+# In Cloud Shell - upload the uncompressed GAF file
+```
+
+gsutil cp goa_uniprot_gcrp.gaf gs://gaf-data/
+
+```
+Result: Uncompressed GAF file ready at gs://gaf-data/goa_uniprot_gcrp.gaf (~70 GB)
+
+### Load GAF File to BigQuery using Dataproc/Spark (Job)
+What we did: Used a Dataproc Spark job to read the uncompressed GAF file and load it to BigQuery
+Why Spark? The 70GB uncompressed file is too large for direct BigQuery load jobs, so we used Spark for distributed processing.
+Script: load_gaf.py (PySpark job submitted to Dataproc cluster)
+```
+from pyspark.sql import SparkSession
+
+# Initialize Spark session
+spark = SparkSession.builder \
+    .appName("GAF to BigQuery") \
+    .getOrCreate()
+
+# Read UNCOMPRESSED GAF file (tab-delimited, no header)
+df = spark.read \
+    .option("delimiter", "\t") \
+    .option("header", "false") \
+    .csv("gs://gaf-data/goa_uniprot_gcrp.gaf")  # UNCOMPRESSED file
+
+# Define GAF 2.2 column names
+columns = ["DB", "DB_Object_ID", "DB_Object_Symbol", "Qualifier", "GO_ID", 
+           "DB_Reference", "Evidence_Code", "With_From", "Aspect", 
+           "DB_Object_Name", "DB_Object_Synonym", "DB_Object_Type", 
+           "Taxon", "Date", "Assigned_By", "Annotation_Extension", 
+           "Gene_Product_Form_ID"]
+
+# Rename columns from _c0, _c1, etc.
+for i, col in enumerate(columns):
+    df = df.withColumnRenamed(f"_c{i}", col)
+
+# Write directly to BigQuery
+df.write \
+    .format("bigquery") \
+    .option("table", "gaf-analysis.genomics_data.goa_uniprot") \
+    .option("temporaryGcsBucket", "dataproc-temp-us-central1-785677848009-os35jmlm") \
+    .mode("overwrite") \
+    .save()
+```
+#### How to run (on Dataproc):
+# Submit PySpark job to Dataproc cluster
+gcloud dataproc jobs submit pyspark \
+    gs://gaf-data/scripts/load_gaf.py \
+    --cluster=gaf-analysis\
+    --region=us-central1
+***Result - Table Created:***
+
+- Table: gaf-analysis.genomics_data.goa_uniprot
+- Location: US (multi-region)
+- Total Records: 377,110,983 gene annotations
+- Size: 70.89 GB logical / 4.81 GB physical (compressed in BigQuery)
+
+***Processing Details:***
+
+- Spark reads file in parallel across multiple workers
+- Processes 70GB of tab-delimited data
+- Automatically handles schema and data types
+- Uses temporary GCS bucket for staging before BigQuery load
+- BigQuery compresses data upon storage (70GB → 4.8GB)
+
+### Step 4: Load NIH Reporter Data to BigQuery
+What we did: Used Python script to load NIH Reporter CSV files from GCS to BigQuery
+NIH data files were uploaded to gs://gaf-data/Reports1/ and loaded using load_nih_reports.py script.
+
+Script: gs://gaf-data/scripts/load_nih_reports.py
+
+```
+# Script loaded CSV files from GCS to BigQuery
+from google.cloud import bigquery
+
+client = bigquery.Client()
+
+# Load projects data
+job_config = bigquery.LoadJobConfig(
+    source_format=bigquery.SourceFormat.CSV,
+    skip_leading_rows=1,
+    autodetect=True
+)
+
+# Load from multiple CSV files using wildcards
+load_job = client.load_table_from_uri(
+    'gs://gaf-data/Reports1/RePORTER_PRJ_C_FY*.csv',
+    'gaf-analysis.nih_reports_us.projects',
+    job_config=job_config
+)
+
+load_job.result()
+```
+Tables Created in nih_reports_us dataset (US multi-region):
+
+***Table 1:*** projects - NIH Funded Projects (FY 2017-2022)
+Key fields:
+
+- CORE_PROJECT_NUM, PROJECT_TITLE, PI_NAMEs
+- TOTAL_COST, DIRECT_COST_AMT, INDIRECT_COST_AMT
+- FY (fiscal year), ACTIVITY (grant type)
+- ORG_NAME, ORG_CITY, ORG_STATE
+- PROJECT_START, PROJECT_END
+
+***Table 2:*** publication_links - Project-Publication Mapping
+# Load publication links
+```
+load_job = client.load_table_from_uri(
+    'gs://gaf-data/Reports1/REPORTER_PUBLNK_C_*.csv',
+    'gaf-analysis.nih_reports_us.publication_links',
+    job_config=job_config
+)```
+Fields:
+
+- PMID (PubMed ID)
+- PROJECT_NUMBER (links to projects table)
+
+
 
 
 ## Research Questions
