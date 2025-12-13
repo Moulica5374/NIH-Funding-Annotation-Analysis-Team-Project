@@ -16,19 +16,20 @@ This project analyzes NIH funding data by integrating Gene Ontology annotations 
 
 - Source: https://reporter.nih.gov/exporter
 
-**Tables Used:**
+**Sources Used:**
 
 - **Projects** - NIH-funded project details (2013-2022)
 - **Publications** - Publications resulting from NIH projects
 - **Link_Tables** - Maps PMID to PROJECT_NUMBER
 
 
-- Key Fields: ACTIVITY, CORE_PROJECT_NUM, TOTAL_COST, PMID
-- Format: CSV files
 
 
-* Key Fields: ACTIVITY, CORE_PROJECT_NUM, TOTAL_COST, PMID
-* Format: CSV files
+
+* Key Fields:
+-  ACTIVITY, CORE_PROJECT_NUM, TOTAL_COST, PMID
+* Format: 
+- CSV files
 
 
 2. NCBI Gene Annotation File (GAF)
@@ -105,7 +106,7 @@ Raw Data Sources
   - BigQuery API enabled
   - Cloud Storage API enabled
 * gcloud CLI installed and configured
-## Setup Instructions
+### Setup Instructions
 
 - Python 3.8+
 Google Cloud Platform account with:
@@ -116,36 +117,36 @@ Google Cloud Platform account with:
 
 - gcloud CLI installed and configured
 
-## Configure Google Cloud 
+### Configure Google Cloud 
 
-## Authenticate
+### Authenticate
 ```
 gcloud auth login
 ```
 
-## Set your project
+### Set your project
 ```
 gcloud config set project gaf-analysis
 ```
 
-## Create GCS bucket for data storage
+### Create GCS bucket for data storage
 ```
 gsutil mb gs://nih-gaf-data-bucket
 ```
 
-## Create BigQuery dataset
+### Create BigQuery dataset
 ```
 bq mk --dataset analysis:nih_funding_analysis
 ```
 
-## Data Processing Steps
+### Data Processing Steps
 
-### Step 1: Upload NIH Reporter Data to GCS
+#### Step 1: Upload NIH Reporter Data to GCS
 What we did: Uploaded pre-downloaded NIH Reporter CSV files to Cloud Storage bucket
 
 NIH Reporter data files (FY 2017-2022) were uploaded to ***gs://gaf-data/Reports1/:***
 
-## Upload NIH Reporter CSV files to bucket
+#### Upload NIH Reporter CSV files to bucket
 ```
 
 gsutil -m cp RePORTER_PRJ_C_FY*.csv gs://gaf-data/Reports1/
@@ -158,10 +159,13 @@ Files uploaded to gs://gaf-data/Reports1/:
 - REPORTER_PUBLNK_C_2017.csv through 2022.csv (~3.2M publication links)
 Total size: ~2.8 GB
 
-### Step 2: Upload and Prepare GAF File
-What we did: Uploaded pre-downloaded GAF file and prepared it for processing
+#### Step 2: Upload and Prepare GAF File
+
+What we did: Uploaded pre-downloaded GAF file and prepared it for processing.
+
 The GAF file was already downloaded and uncompressed locally, then uploaded to GCS:
-### Upload the uncompressed GAF file
+
+#### Upload the uncompressed GAF file
 ```
 
 gsutil cp goa_uniprot_gcrp.gaf gs://gaf-data/
@@ -169,7 +173,7 @@ gsutil cp goa_uniprot_gcrp.gaf gs://gaf-data/
 ```
 Result: Uncompressed GAF file ready at gs://gaf-data/goa_uniprot_gcrp.gaf (~70 GB)
 
-### Step 3: Load GAF File to BigQuery using Dataproc/Spark (Job)
+#### Step 3: Load GAF File to BigQuery using Dataproc/Spark (Job)
 What we did: Used a Dataproc Spark job to read the uncompressed GAF file and load it to BigQuery
 
 Why Spark? The 70GB uncompressed file is too large for direct BigQuery load jobs, so we used Spark for distributed processing.
@@ -211,7 +215,7 @@ df.write \
 ```
 #### How to run (on Dataproc):
 
-### Submit PySpark job to Dataproc cluster
+#### Submit PySpark job to Dataproc cluster
 ```
 gcloud dataproc jobs submit pyspark \
     gs://gaf-data/scripts/load_gaf.py \
@@ -234,7 +238,7 @@ gcloud dataproc jobs submit pyspark \
 - Uses temporary GCS bucket for staging before BigQuery load
 - BigQuery compresses data upon storage (70GB → 4.8GB)
 
-### Step 4: Load NIH Reporter Data to BigQuery
+#### Step 4: Load NIH Reporter Data to BigQuery
 
 What we did: Used Python script to load NIH Reporter CSV files from GCS to BigQuery.
 
@@ -250,18 +254,16 @@ from google.cloud import bigquery
 
 client = bigquery.Client()
 
-### Load projects data
-```
+
 job_config = bigquery.LoadJobConfig(
     source_format=bigquery.SourceFormat.CSV,
     skip_leading_rows=1,
     autodetect=True
 )
-```
 
-### Load from multiple CSV files using wildcards
 
-```
+
+
 load_job = client.load_table_from_uri(
     'gs://gaf-data/Reports1/RePORTER_PRJ_C_FY*.csv',
     'gaf-analysis.nih_reports_us.projects',
@@ -270,9 +272,11 @@ load_job = client.load_table_from_uri(
 
 load_job.result()
 ```
+
 Tables Created in nih_reports_us dataset (US multi-region):
 
-***Table 1:*** projects - NIH Funded Projects (FY 2017-2022)
+**Table 1:** projects - NIH Funded Projects (FY 2017-2022)
+
 Key fields:
 
 - CORE_PROJECT_NUM, PROJECT_TITLE, PI_NAMEs
@@ -281,7 +285,7 @@ Key fields:
 - ORG_NAME, ORG_CITY, ORG_STATE
 - PROJECT_START, PROJECT_END
 
-***Table 2:*** publication_links - Project-Publication Mapping
+**Table 2:** publication_links - Project-Publication Mapping
 
 ### Load publication links
 ```
@@ -312,7 +316,6 @@ SELECT
   g.Aspect,
   g.DB_Reference,
   
-  -- NIH Reporter project fields
   r.APPLICATION_ID,
   r.PROJECT_TITLE,
   r.PI_NAMEs,
@@ -321,7 +324,6 @@ SELECT
   r.ORG_NAME,
   r.PMID,
   
-  -- Extracted PMID for verification
   REGEXP_EXTRACT(g.DB_Reference, r'PMID:(\d+)') AS matched_pmid
 
 FROM `genomics_data.goa_uniprot` g
@@ -388,7 +390,6 @@ FROM `gaf-analysis.dataset.pmid_mapping`
 
 
 WHERE 
-  -- Remove records with null critical fields
   gene_symbol IS NOT NULL
   AND GO_ID IS NOT NULL
   AND PMID IS NOT NULL
@@ -414,7 +415,8 @@ EXPORT DATA OPTIONS(
 SELECT * FROM `nih_reports_us.nih_funded_gene_annotations`;
 ```
 Output files in gs://gaf-data/exports/final/:
-- gaf_nih_linked_000000000000.csv (~1 GB)
+
+- gaf_nih_linked_000000000000.csv 
 - gaf_nih_linked_000000000001.csv 
 
 
