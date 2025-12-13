@@ -425,10 +425,10 @@ Output files in gs://gaf-data/exports/final/:
 
 ![Total_count](<Screenshot_1.png>)
 
-![alt text](<Screenshot_2.png>)
-![Summary](<Screenshot 2025-12-12 at 8.57.09 PM-1.png>)
+![Null Values Check](<Screenshot_2.png>)
 
 
+![summary](<Screenshot 2025-12-12 at 8.57.09 PM-1-1.png>)
 
 
 
