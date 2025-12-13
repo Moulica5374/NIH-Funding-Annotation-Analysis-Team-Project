@@ -423,12 +423,12 @@ Output files in gs://gaf-data/exports/final/:
 
 ### Sample Queries :
 
-![Total_count](<Screenshot_1.png>)
+![Total_count](<count_query-1.png>) 
 
-![Null Values Check](<Screenshot_2.png>)
+![Null Values Check](<null_check_query.png>)
 
 
-![summary](<Screenshot 2025-12-12 at 8.57.09 PM-1-1.png>)
+![summary](<summary.png>)
 
 
 
