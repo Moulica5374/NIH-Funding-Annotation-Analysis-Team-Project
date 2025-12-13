@@ -9,13 +9,14 @@ This project analyzes NIH funding data by integrating Gene Ontology annotations 
 - Download and process large-scale GAF file (377M+ records)
 - Integrate NIH Reporter data
 - Clean and structure data for analysis
-- Deliver processed datasets to analysis team
+- Deliver processed datasets for analysis.
 
 ### Data Sources
 1. NIH Reporter Data
 
 - Source: https://reporter.nih.gov/exporter
-Tables Used:
+
+**Tables Used:**
 
 - **Projects** - NIH-funded project details (2013-2022)
 - **Publications** - Publications resulting from NIH projects
@@ -24,26 +25,27 @@ Tables Used:
 
 - Key Fields: ACTIVITY, CORE_PROJECT_NUM, TOTAL_COST, PMID
 - Format: CSV files
-- Size: ~2-5 GB total
 
-Key Fields: ACTIVITY, CORE_PROJECT_NUM, TOTAL_COST, PMID
-Format: CSV files
-Size: ~2-5 GB total
+
+* Key Fields: ACTIVITY, CORE_PROJECT_NUM, TOTAL_COST, PMID
+* Format: CSV files
+
 
 2. NCBI Gene Annotation File (GAF)
 
 - Source: https://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/goa_uniprot_gcrp.gaf.gz
 - Format: GAF 2.2 (tab-delimited)
 - Compressed Size: ~4.5 GB
-- Uncompressed Size: ~70 GB
+- Uncompressed Size: ~74 GB
 - Total Records: 377,449,350 annotations
+
 **Key Fields**:
 
-- DB_Object_ID (protein identifier)
-- GO_ID (Gene Ontology term)
-- Taxon_ID (organism/species)
-- PMID (PubMed publication ID)
-- Evidence_Code (annotation evidence type)
+* DB_Object_ID (protein identifier)
+* GO_ID (Gene Ontology term)
+* Taxon_ID (organism/species)
+* PMID (PubMed publication ID)
+* Evidence_Code (annotation evidence type)
 
 
 
@@ -94,7 +96,7 @@ Raw Data Sources
     Analysis Team (Statistical Analysis & Visualization)
 ```
 
-## Setup Instructions
+
 
 ### Prerequisites
 
@@ -116,17 +118,25 @@ Google Cloud Platform account with:
 
 ## Configure Google Cloud 
 
-# Authenticate
+## Authenticate
+```
 gcloud auth login
+```
 
-# Set your project
+## Set your project
+```
 gcloud config set project gaf-analysis
+```
 
-# Create GCS bucket for data storage
+## Create GCS bucket for data storage
+```
 gsutil mb gs://nih-gaf-data-bucket
+```
 
-# Create BigQuery dataset
+## Create BigQuery dataset
+```
 bq mk --dataset analysis:nih_funding_analysis
+```
 
 ## Data Processing Steps
 
@@ -135,7 +145,7 @@ What we did: Uploaded pre-downloaded NIH Reporter CSV files to Cloud Storage buc
 
 NIH Reporter data files (FY 2017-2022) were uploaded to ***gs://gaf-data/Reports1/:***
 
-# In Cloud Shell - upload NIH Reporter CSV files to bucket
+## Upload NIH Reporter CSV files to bucket
 ```
 
 gsutil -m cp RePORTER_PRJ_C_FY*.csv gs://gaf-data/Reports1/
@@ -151,7 +161,7 @@ Total size: ~2.8 GB
 ### Step 2: Upload and Prepare GAF File
 What we did: Uploaded pre-downloaded GAF file and prepared it for processing
 The GAF file was already downloaded and uncompressed locally, then uploaded to GCS:
-# In Cloud Shell - upload the uncompressed GAF file
+# Upload the uncompressed GAF file
 ```
 
 gsutil cp goa_uniprot_gcrp.gaf gs://gaf-data/
