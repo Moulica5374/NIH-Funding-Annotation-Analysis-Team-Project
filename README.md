@@ -479,25 +479,17 @@ For all statistical analysis, run the jupyter notebook Data_Analysis.ipynb. This
 
 ### GAF Annotations Dataset
 - **Total Rows**: 377,449,350
-- **Unique Proteins**: [X]
-- **Unique Organisms**: [Y]
-- **Unique PMIDs**: [Z]
-
-### Merged Dataset
-- **Projects with Publications**: [X]
-- **Projects with Annotations**: [Y]
-- **Coverage Rate**: [Z]%
+- **Unique Proteins**: 15,557
+- **Unique Taxons**: 146
+- **Unique PMIDs**: 4,246
 
 ## Visualization Examples
 
-All visualizations are located in `results/figures/`:
+All visualizations are located in `images/`:
 - Organism funding distribution bar charts
 - Protein funding heatmaps
 - Temporal funding trends
 - Bias detection plots with confidence intervals
-
-
-
 
 
 ## Performance Considerations
