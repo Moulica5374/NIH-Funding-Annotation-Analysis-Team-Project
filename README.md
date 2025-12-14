@@ -516,13 +516,17 @@ UniProt-GOA: The Gene Ontology Consortium. Gene Ontology Annotations (GOA).
 https://www.ebi.ac.uk/GOA
 ```
 
-## License
-[Specify your license]
+
+
+
 
 ## Contact
-- [Your Name]: [email]
-- Project Repository: [GitHub URL]
+- Moulica Vani Goli : moulica9@iastate.edu
+- Mike Hunter ; mchunter@iastate.edu
+- Rohita : rnalluri@iastate.edu
+- Ethan : ebushsr@iastate.edu
+- Project Repository: https://github.com/Moulica5374/NIH-Funding-Annotation-Analysis-Team-Project
 
 ---
-**Last Updated**: October 28, 2025  
-**Project Due Date**: [Insert due date]
+**Last Updated**: Dec 13, 2025  
+
