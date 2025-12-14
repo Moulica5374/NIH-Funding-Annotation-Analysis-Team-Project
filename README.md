@@ -502,7 +502,6 @@ All visualizations are located in `images/`:
 ## Known Issues & Limitations
 
 1. **GAF File Size**: Cannot process locally, requires cloud infrastructure
-2. **PMID Matching**: ~[X]% of projects have no linked publications
 3. **Data Coverage**: Some organisms/proteins may have limited annotations
 4. **Time Period**: Analysis limited to 2013-2022 fiscal years
 
