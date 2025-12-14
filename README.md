@@ -505,7 +505,7 @@ All visualizations are located in `images/`:
 3. **Data Coverage**: Some organisms/proteins may have limited annotations
 4. **Time Period**: Analysis limited to 2013-2022 fiscal years
 
-## Citation
+## Citations
 
 ```
 NIH Reporter Data: National Institutes of Health. NIH RePORTER. 
