@@ -443,114 +443,38 @@ Output files in gs://gaf-data/exports/final/:
 2. **RQ2**: How much NIH money is spent on different proteins? Is there a bias?
 
 ### Team-Proposed Questions
-3. **RQ3**: [Your additional research question]
-4. **RQ4**: [Your additional research question]
+3. **RQ3**: How much is spent on different protein functions?​ Is there a bias?
+4. **RQ4**: How much is awarded to different institutions?​ Is there a bias?
+5. **RQ5**: How much is awarded to different states?​ Is there a bias?
+6. **RQ6**: Has there been a change in funding over time?​
 
 ### Project Structure:
 ```
 nih-funding-analysis/
-├── README.md
-├── requirements.txt
-├── data/
-│   ├── raw/                    # Small sample files only (GAF in GCS)
-│   └── processed/              # Intermediate processed data
-├── scripts/
-│   ├── 01_download_nih_data.py      # Download NIH Reporter data
-│   ├── 02_load_to_bigquery_reports.py         # Convert data to Parquet (Spark)
-│   ├── 03_load_to_bigquery_goa.py       # Load data to BigQuery
-│   └── 04_join_reports_goa.sql   # Join  (if used)
-    └── 05_export_csv.sql.          #Final csv Files to start with analysis
-├── analysis/
-│   ├── rq1_organism_funding.py      # RQ1 analysis
-│   ├── rq2_protein_funding.py       # RQ2 analysis
-│   ├── rq3_custom_analysis.py       # Your RQ3
-│   └── rq4_custom_analysis.py       # Your RQ4
-├── visualization/
-│   ├── plot_organisms.py
-│   └── plot_proteins.py
-├── statistical_tests/
-│   └── bias_detection.py            # Statistical significance testing
-├── results/
-│   ├── figures/
-│   └── statistics/
-├── docs/
-│   ├── data_cards.md               # Data documentation
-│   ├── supplemental.pdf            # Processing details
-│   └── midterm_presentation.pptx
-└── notebooks/
-    └── exploratory_analysis.ipynb
+├── README.md                   # This document
+├── data/                       # A non-included folder containing the csv files with the filtered data
+├── images/                     # All images used in reports and 
+├── gitignore
+├── Data_Analysis.ipynb         # Jupyter notebook that performs all data analysis
+├── JOINQUERY.sql               # Code for joining the datasets
+├── load_gaf.py                 # Code for loading the gaf file
+├── load_reports.py             # Code for loading the reports
 ```
 
-### Research Question 1: Organism Funding Analysis
-```bash
-python analysis/rq1_organism_funding.py
-```
-**Expected Output**:
-- `results/figures/organism_funding_distribution.png`
-- `results/statistics/organism_bias_test.json`
-- Console output with bias statistics
-
-**Sample Output**:
-```
-Top 5 Organisms by Funding:
-1. Homo sapiens: $15.2B (bias: +2.3σ, p<0.001)
-2. Mus musculus: $8.7B (bias: +1.1σ, p=0.023)
-...
-```
-
-### Research Question 2: Protein Funding Analysis
-```bash
-python analysis/rq2_protein_funding.py
-```
-**Expected Output**:
-- `results/figures/protein_funding_distribution.png`
-- `results/statistics/protein_bias_test.json`
-
-### Research Question 3: [Your Question]
-```bash
-python analysis/rq3_custom_analysis.py
-```
-**Expected Output**: [Describe outputs]
-
-### Research Question 4: [Your Question]
-```bash
-python analysis/rq4_custom_analysis.py
-```
-**Expected Output**: [Describe outputs]
-
-## Results Summary
-
-| Research Question | Key Finding | Statistical Test | p-value |
-|-------------------|-------------|------------------|---------|
-| RQ1: Organism Bias | [Finding] | Chi-square | p<0.001 |
-| RQ2: Protein Bias | [Finding] | T-test | p=0.023 |
-| RQ3: [Custom] | [Finding] | [Test] | [Value] |
-| RQ4: [Custom] | [Finding] | [Test] | [Value] |
-
-## Bias Detection Method
-
-We detect funding bias using the formula:
-```
-bias(T, θ) = E(T) - θ
-```
-
-Where:
-- **T**: Observed funding allocation statistic
-- **θ**: Expected funding allocation under null hypothesis (uniform distribution)
-- **E(T)**: Expected value of T
-
-**Interpretation**: 
-- Positive bias indicates over-funding
-- Negative bias indicates under-funding
-- Statistical significance tested using appropriate tests (Chi-square, t-test, ANOVA)
+### Statistical Analysis
+For all statistical analysis, run the jupyter notebook Data_Analysis.ipynb. This runs successfully with Python 3.13 and the following libraries:
+- pandas
+- numpy
+- seaborn
+- matplotlib.plot
+- scikit.posthocs
+- scikit.stats
 
 ## Data Statistics
 
 ### NIH Projects Dataset
 - **Time Period**: 2013-2022
-- **Total Projects**: [X]
-- **R01 Grants**: [Y]
-- **Total Funding**: $[Z]B
+- **Total Projects**: 4970
 - **Fields**: 45 columns
 
 ### GAF Annotations Dataset
